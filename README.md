@@ -1,3 +1,13 @@
+# Self-Hosted Monitor All ETH Transfer Transactions
+
+## Flags
+
+- SAFE_LAST_BLOCK  store the last block number in db and starts work from there after restart server
+- RPC_URL  rpc url
+- RPC_ID  rpc id
+- PORT   to run server
+- USE_AS_BACKEND_FOR_WALLET_APP  if true, server will   store data about wallets and devices and will  send notifications to devices
+- WHITE_LIST_IP  addresses that can access to get wallets or provide wallets
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
 </p>

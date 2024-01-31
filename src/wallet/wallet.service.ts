@@ -1,19 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { AppConfig } from '../config/config';
 
 @Injectable()
 export class WalletService {
-  getAllWallets() {
-    return [
-      '0x00000000219ab540356cBB839Cbe05303d7705Fa',
-      '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      '0xBE0eB53F46cd790Cd13851d5EFf43D12404d33E8',
-      '0xDA9dfA130Df4dE4673b89022EE50ff26f6EA73Cf',
-      '0x8315177aB297bA92A06054cE80a67Ed4DBd7ed3a',
-      '0xF977814e90dA44bFA03b6295A0616a897441aceC',
-      '0x8696e84aB5e78983f2456bCB5c199eEa9648C8C2',
-      '0x1Db92e2EeBC8E0c075a02BeA49a2935BcD2dFCF4',
-      '0x32400084C286CF3E17e7B677ea9583e60a000324',
-      '0x28C6c06298d514Db089934071355E5743bf21d60',
-    ];
+  readonly logger = new Logger(WalletService.name);
+  readonly appConfig: AppConfig;
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
+  ) {
+    this.appConfig = this.configService.get<AppConfig>('app');
+    // this.useAsBackend = this.configService.get<boolean>(
+    //   'USE_AS_BACKEND_FOR_WALLET_APP',
+    // );
+    // this.walletsAPiUrl = this.configService.get<string>('GET_WALLETS_API');
+    this.logger.log(`useAsBackend: ${this.appConfig.useAsBackend}`);
+    this.logger.log(`walletsAPiUrl: ${this.appConfig.walletsAPiUrl}`);
+  }
+
+  async getAllWallets(): Promise<string[]> {
+    if (this.appConfig.useAsBackend) {
+      return [];
+      // return this.getWalletsFromDB();
+    } else {
+      try {
+        const headers =
+          this.appConfig.walletsApiSecretKey !== undefined
+            ? { 'x-api-key': this.appConfig.walletsApiSecretKey }
+            : {};
+
+        const { data } = await this.httpService
+          .get<string[]>(this.appConfig.walletsAPiUrl, { headers })
+          .toPromise();
+        return data;
+      } catch (e) {
+        this.logger.error(e);
+      }
+      return [];
+    }
   }
 }
